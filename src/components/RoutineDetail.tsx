@@ -193,14 +193,19 @@ export function RoutineDetail({ routine, completedCount, onStart, onBack }: Prop
         </p>
       )}
 
-      {/* START button */}
-      <div className="sticky bottom-20 pt-2 pb-2">
-        <button
-          onClick={onStart}
-          className="w-full bg-emerald-500 hover:bg-emerald-600 active:bg-emerald-700 text-white font-bold text-lg py-4 rounded-2xl shadow-lg shadow-emerald-500/25 transition-all hover:shadow-xl hover:shadow-emerald-500/30"
-        >
-          Start Routine
-        </button>
+      {/* Spacer so content isn't hidden behind fixed button */}
+      <div className="h-24" />
+
+      {/* START button — fixed at bottom with solid background */}
+      <div className="fixed bottom-0 left-0 right-0 bg-white dark:bg-slate-900 border-t border-slate-200 dark:border-slate-700 px-4 py-4">
+        <div className="max-w-lg mx-auto">
+          <button
+            onClick={onStart}
+            className="w-full bg-emerald-500 hover:bg-emerald-600 active:bg-emerald-700 text-white font-bold text-lg py-4 rounded-2xl shadow-lg shadow-emerald-500/25 transition-all hover:shadow-xl hover:shadow-emerald-500/30"
+          >
+            Start Routine
+          </button>
+        </div>
       </div>
     </div>
   )
