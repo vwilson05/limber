@@ -21,11 +21,13 @@ const milestoneIcons = [
 interface Props {
   routine: Routine
   completedCount: number
+  voiceGuidance: boolean
+  onVoiceGuidanceChange: (val: boolean) => void
   onStart: () => void
   onBack: () => void
 }
 
-export function RoutineDetail({ routine, completedCount, onStart, onBack }: Props) {
+export function RoutineDetail({ routine, completedCount, voiceGuidance, onVoiceGuidanceChange, onStart, onBack }: Props) {
   const allMuscles = new Set<string>()
   routine.stretches.forEach((rs) => {
     const s = getStretchById(rs.stretchId)
@@ -194,11 +196,27 @@ export function RoutineDetail({ routine, completedCount, onStart, onBack }: Prop
       )}
 
       {/* Spacer so content isn't hidden behind fixed button */}
-      <div className="h-24" />
+      <div className="h-32" />
 
       {/* START button — fixed at bottom with solid background */}
-      <div className="fixed bottom-0 left-0 right-0 bg-white dark:bg-slate-900 border-t border-slate-200 dark:border-slate-700 px-4 py-4">
+      <div className="fixed bottom-0 left-0 right-0 bg-white dark:bg-slate-900 border-t border-slate-200 dark:border-slate-700 px-4 pt-3 pb-4">
         <div className="max-w-lg mx-auto">
+          {/* Voice guidance toggle */}
+          <button
+            onClick={() => onVoiceGuidanceChange(!voiceGuidance)}
+            className="w-full flex items-center justify-between px-4 py-2.5 mb-3 rounded-xl bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700"
+          >
+            <div className="flex items-center gap-2.5">
+              <svg className={`w-4 h-4 ${voiceGuidance ? 'text-emerald-500' : 'text-slate-400'}`} fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
+                <path strokeLinecap="round" strokeLinejoin="round" d="M19 11a7 7 0 01-7 7m0 0a7 7 0 01-7-7m7 7v4m0 0H8m4 0h4m-4-8a3 3 0 01-3-3V5a3 3 0 116 0v6a3 3 0 01-3 3z" />
+              </svg>
+              <span className="text-sm text-slate-700 dark:text-slate-300 font-medium">Voice Guidance</span>
+            </div>
+            <div className={`w-10 h-6 rounded-full transition-colors ${voiceGuidance ? 'bg-emerald-500' : 'bg-slate-300 dark:bg-slate-600'} relative`}>
+              <div className={`w-4 h-4 bg-white rounded-full absolute top-1 transition-transform ${voiceGuidance ? 'translate-x-5' : 'translate-x-1'}`} />
+            </div>
+          </button>
+
           <button
             onClick={onStart}
             className="w-full bg-emerald-500 hover:bg-emerald-600 active:bg-emerald-700 text-white font-bold text-lg py-4 rounded-2xl shadow-lg shadow-emerald-500/25 transition-all hover:shadow-xl hover:shadow-emerald-500/30"

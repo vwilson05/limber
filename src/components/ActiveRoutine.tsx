@@ -2,11 +2,13 @@ import { useState, useEffect, useRef, useCallback } from 'react'
 import type { Routine } from '../types'
 import { getStretchById } from '../data/stretches'
 import { useSound } from '../hooks/useSound'
+import { useVoiceGuidance } from '../hooks/useVoiceGuidance'
 
 interface Props {
   routine: Routine
   onComplete: () => void
   onExit: () => void
+  initialVoiceGuidance?: boolean
 }
 
 // prep: read instructions, tap "I'm Ready"
@@ -18,7 +20,7 @@ type Phase = 'prep' | 'getInPosition' | 'hold' | 'rest' | 'complete'
 
 const GET_IN_POSITION_SECONDS = 5
 
-export function ActiveRoutine({ routine, onComplete, onExit }: Props) {
+export function ActiveRoutine({ routine, onComplete, onExit, initialVoiceGuidance = false }: Props) {
   const [currentIndex, setCurrentIndex] = useState(0)
   const [currentSide, setCurrentSide] = useState<'right' | 'left'>('right')
   const [phase, setPhase] = useState<Phase>('prep')
@@ -27,8 +29,15 @@ export function ActiveRoutine({ routine, onComplete, onExit }: Props) {
   const [isPaused, setIsPaused] = useState(false)
   const [totalElapsed, setTotalElapsed] = useState(0)
   const [soundEnabled, setSoundEnabled] = useState(true)
+  const [voiceEnabled, setVoiceEnabled] = useState(initialVoiceGuidance)
 
   const { tick, ding, startChime, initAudio, setEnabled } = useSound()
+  const voice = useVoiceGuidance()
+
+  // Sync voice enabled state
+  useEffect(() => {
+    voice.setEnabled(voiceEnabled)
+  }, [voiceEnabled])
 
   const stateRef = useRef({ currentIndex, currentSide, phase, currentRep })
   stateRef.current = { currentIndex, currentSide, phase, currentRep }
@@ -89,9 +98,13 @@ export function ActiveRoutine({ routine, onComplete, onExit }: Props) {
 
   // Start the actual hold after get-in-position countdown
   const startHold = () => {
-    const { rs } = getStretchInfo(stateRef.current.currentIndex)
-    if (!rs) return
+    const { rs, s } = getStretchInfo(stateRef.current.currentIndex)
+    if (!rs || !s) return
     startChime()
+    // Play voice guidance for this stretch (first side only, or non-bilateral)
+    if (stateRef.current.currentSide === 'right' || s.sides !== 'both') {
+      voice.playStretchGuide(s.id)
+    }
     setPhase('hold')
     setTimeLeft(rs.holdSeconds)
   }
@@ -100,6 +113,12 @@ export function ActiveRoutine({ routine, onComplete, onExit }: Props) {
     const next = !soundEnabled
     setSoundEnabled(next)
     setEnabled(next)
+  }
+
+  const toggleVoice = () => {
+    const next = !voiceEnabled
+    setVoiceEnabled(next)
+    if (!next) voice.stop()
   }
 
   const handleTimerEnd = () => {
@@ -135,6 +154,7 @@ export function ActiveRoutine({ routine, onComplete, onExit }: Props) {
 
     // If bilateral and on first side, switch — show get-in-position for other side
     if (s.sides === 'both' && side === 'right') {
+      voice.playSideSwitch(s.id)
       setCurrentSide('left')
       setCurrentRep(1)
       setPhase('getInPosition')
@@ -144,9 +164,11 @@ export function ActiveRoutine({ routine, onComplete, onExit }: Props) {
 
     // Move to rest or next stretch
     if (rs.restSeconds && idx < totalStretches - 1) {
+      voice.playRest()
       setPhase('rest')
       setTimeLeft(rs.restSeconds)
     } else if (idx >= totalStretches - 1) {
+      voice.playComplete()
       setPhase('complete')
       onComplete()
     } else {
@@ -251,6 +273,15 @@ export function ActiveRoutine({ routine, onComplete, onExit }: Props) {
           <span className="text-sm text-slate-400">
             {currentIndex + 1} / {totalStretches}
           </span>
+          <button
+            onClick={toggleVoice}
+            className={`${voiceEnabled ? 'text-emerald-500' : 'text-slate-400'} hover:text-slate-600 dark:hover:text-slate-300`}
+            title={voiceEnabled ? 'Disable voice' : 'Enable voice'}
+          >
+            <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
+              <path strokeLinecap="round" strokeLinejoin="round" d="M19 11a7 7 0 01-7 7m0 0a7 7 0 01-7-7m7 7v4m0 0H8m4 0h4m-4-8a3 3 0 01-3-3V5a3 3 0 116 0v6a3 3 0 01-3 3z" />
+            </svg>
+          </button>
           <button
             onClick={toggleSound}
             className="text-slate-400 hover:text-slate-600 dark:hover:text-slate-300"

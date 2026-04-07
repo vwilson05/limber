@@ -22,6 +22,7 @@ function App() {
     duration: null,
   })
   const [activeRoutine, setActiveRoutine] = useState<Routine | null>(null)
+  const [voiceGuidance, setVoiceGuidance] = useState(false)
   const { progress, completeRoutine, totalCompleted, streak } = useProgress()
 
   const [previousView, setPreviousView] = useState<View>('home')
@@ -61,6 +62,7 @@ function App() {
             routine={activeRoutine}
             onComplete={handleComplete}
             onExit={handleExitRoutine}
+            initialVoiceGuidance={voiceGuidance}
           />
         </div>
       </div>
@@ -251,6 +253,8 @@ function App() {
             completedCount={
               progress.completedRoutines.filter((p) => p.routineId === activeRoutine.id).length
             }
+            voiceGuidance={voiceGuidance}
+            onVoiceGuidanceChange={setVoiceGuidance}
             onStart={beginRoutine}
             onBack={() => {
               setActiveRoutine(null)
