@@ -23,11 +23,13 @@ interface Props {
   completedCount: number
   voiceGuidance: boolean
   onVoiceGuidanceChange: (val: boolean) => void
+  flowMode: boolean
+  onFlowModeChange: (val: boolean) => void
   onStart: () => void
   onBack: () => void
 }
 
-export function RoutineDetail({ routine, completedCount, voiceGuidance, onVoiceGuidanceChange, onStart, onBack }: Props) {
+export function RoutineDetail({ routine, completedCount, voiceGuidance, onVoiceGuidanceChange, flowMode, onFlowModeChange, onStart, onBack }: Props) {
   const allMuscles = new Set<string>()
   routine.stretches.forEach((rs) => {
     const s = getStretchById(rs.stretchId)
@@ -196,26 +198,44 @@ export function RoutineDetail({ routine, completedCount, voiceGuidance, onVoiceG
       )}
 
       {/* Spacer so content isn't hidden behind fixed button */}
-      <div className="h-32" />
+      <div className="h-44" />
 
       {/* START button — fixed at bottom with solid background */}
       <div className="fixed bottom-0 left-0 right-0 bg-white dark:bg-slate-900 border-t border-slate-200 dark:border-slate-700 px-4 pt-3 pb-4">
         <div className="max-w-lg mx-auto">
-          {/* Voice guidance toggle */}
-          <button
-            onClick={() => onVoiceGuidanceChange(!voiceGuidance)}
-            className="w-full flex items-center justify-between px-4 py-2.5 mb-3 rounded-xl bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700"
-          >
-            <div className="flex items-center gap-2.5">
-              <svg className={`w-4 h-4 ${voiceGuidance ? 'text-emerald-500' : 'text-slate-400'}`} fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
-                <path strokeLinecap="round" strokeLinejoin="round" d="M19 11a7 7 0 01-7 7m0 0a7 7 0 01-7-7m7 7v4m0 0H8m4 0h4m-4-8a3 3 0 01-3-3V5a3 3 0 116 0v6a3 3 0 01-3 3z" />
-              </svg>
-              <span className="text-sm text-slate-700 dark:text-slate-300 font-medium">Voice Guidance</span>
-            </div>
-            <div className={`w-10 h-6 rounded-full transition-colors ${voiceGuidance ? 'bg-emerald-500' : 'bg-slate-300 dark:bg-slate-600'} relative`}>
-              <div className={`w-4 h-4 bg-white rounded-full absolute top-1 transition-transform ${voiceGuidance ? 'translate-x-5' : 'translate-x-1'}`} />
-            </div>
-          </button>
+          {/* Mode toggles */}
+          <div className="flex gap-2 mb-3">
+            <button
+              onClick={() => onFlowModeChange(!flowMode)}
+              className={`flex-1 flex items-center justify-between px-3 py-2.5 rounded-xl border ${flowMode ? 'bg-emerald-50 dark:bg-emerald-900/20 border-emerald-300 dark:border-emerald-700' : 'bg-slate-50 dark:bg-slate-800 border-slate-200 dark:border-slate-700'}`}
+            >
+              <div className="flex items-center gap-2">
+                <svg className={`w-4 h-4 ${flowMode ? 'text-emerald-500' : 'text-slate-400'}`} fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
+                  <path strokeLinecap="round" strokeLinejoin="round" d="M14.752 11.168l-3.197-2.132A1 1 0 0010 9.87v4.263a1 1 0 001.555.832l3.197-2.132a1 1 0 000-1.664z" />
+                  <path strokeLinecap="round" strokeLinejoin="round" d="M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
+                </svg>
+                <span className="text-xs text-slate-700 dark:text-slate-300 font-medium">Flow</span>
+              </div>
+              <div className={`w-9 h-5 rounded-full transition-colors ${flowMode ? 'bg-emerald-500' : 'bg-slate-300 dark:bg-slate-600'} relative`}>
+                <div className={`w-3.5 h-3.5 bg-white rounded-full absolute top-[3px] transition-transform ${flowMode ? 'translate-x-[18px]' : 'translate-x-[3px]'}`} />
+              </div>
+            </button>
+
+            <button
+              onClick={() => onVoiceGuidanceChange(!voiceGuidance)}
+              className={`flex-1 flex items-center justify-between px-3 py-2.5 rounded-xl border ${voiceGuidance ? 'bg-emerald-50 dark:bg-emerald-900/20 border-emerald-300 dark:border-emerald-700' : 'bg-slate-50 dark:bg-slate-800 border-slate-200 dark:border-slate-700'}`}
+            >
+              <div className="flex items-center gap-2">
+                <svg className={`w-4 h-4 ${voiceGuidance ? 'text-emerald-500' : 'text-slate-400'}`} fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
+                  <path strokeLinecap="round" strokeLinejoin="round" d="M19 11a7 7 0 01-7 7m0 0a7 7 0 01-7-7m7 7v4m0 0H8m4 0h4m-4-8a3 3 0 01-3-3V5a3 3 0 116 0v6a3 3 0 01-3 3z" />
+                </svg>
+                <span className="text-xs text-slate-700 dark:text-slate-300 font-medium">Voice</span>
+              </div>
+              <div className={`w-9 h-5 rounded-full transition-colors ${voiceGuidance ? 'bg-emerald-500' : 'bg-slate-300 dark:bg-slate-600'} relative`}>
+                <div className={`w-3.5 h-3.5 bg-white rounded-full absolute top-[3px] transition-transform ${voiceGuidance ? 'translate-x-[18px]' : 'translate-x-[3px]'}`} />
+              </div>
+            </button>
+          </div>
 
           <button
             onClick={onStart}

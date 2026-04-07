@@ -9,9 +9,10 @@ interface Props {
   onComplete: () => void
   onExit: () => void
   initialVoiceGuidance?: boolean
+  initialFlowMode?: boolean
 }
 
-// prep: read instructions, tap "I'm Ready"
+// prep: read instructions, tap "I'm Ready" (manual) or auto-countdown (flow)
 // getInPosition: 5-second countdown to get into the stretch
 // hold: the actual timed stretch
 // rest: transition between stretches
@@ -19,8 +20,9 @@ interface Props {
 type Phase = 'prep' | 'getInPosition' | 'hold' | 'rest' | 'complete'
 
 const GET_IN_POSITION_SECONDS = 5
+const FLOW_PREP_SECONDS = 12
 
-export function ActiveRoutine({ routine, onComplete, onExit, initialVoiceGuidance = false }: Props) {
+export function ActiveRoutine({ routine, onComplete, onExit, initialVoiceGuidance = false, initialFlowMode = false }: Props) {
   const [currentIndex, setCurrentIndex] = useState(0)
   const [currentSide, setCurrentSide] = useState<'right' | 'left'>('right')
   const [phase, setPhase] = useState<Phase>('prep')
@@ -30,6 +32,9 @@ export function ActiveRoutine({ routine, onComplete, onExit, initialVoiceGuidanc
   const [totalElapsed, setTotalElapsed] = useState(0)
   const [soundEnabled, setSoundEnabled] = useState(true)
   const [voiceEnabled, setVoiceEnabled] = useState(initialVoiceGuidance)
+  const [flowMode] = useState(initialFlowMode)
+  // In flow mode, which instruction step is currently highlighted (revealed over time)
+  const [flowStep, setFlowStep] = useState(0)
 
   const { tick, ding, startChime, initAudio, setEnabled } = useSound()
   const voice = useVoiceGuidance()
@@ -63,11 +68,32 @@ export function ActiveRoutine({ routine, onComplete, onExit, initialVoiceGuidanc
     setCurrentRep(1)
     setCurrentSide(s.sides === 'both' ? 'right' : 'right')
     setIsPaused(false)
+    setFlowStep(0)
+    // In flow mode, start the prep countdown and play voice immediately
+    if (flowMode) {
+      setTimeLeft(FLOW_PREP_SECONDS)
+      initAudio()
+      voice.playStretchGuide(s.id)
+    }
   }, [currentIndex, getStretchInfo])
 
-  // Timer — only runs during getInPosition, hold, and rest phases
+  // Flow mode: advance instruction steps during prep based on time elapsed
   useEffect(() => {
-    if (isPaused || phase === 'complete' || phase === 'prep') return
+    if (!flowMode || phase !== 'prep') return
+    const { s } = getStretchInfo(currentIndex)
+    if (!s) return
+    const totalSteps = s.instructions.length
+    const elapsed = FLOW_PREP_SECONDS - timeLeft
+    // Evenly distribute steps across the countdown, leave last 2s for get-ready
+    const usableTime = FLOW_PREP_SECONDS - 2
+    const stepIndex = Math.min(Math.floor((elapsed / usableTime) * totalSteps), totalSteps - 1)
+    setFlowStep(Math.max(0, stepIndex))
+  }, [timeLeft, phase, flowMode, currentIndex])
+
+  // Timer — runs during getInPosition, hold, rest, AND prep in flow mode
+  useEffect(() => {
+    if (isPaused || phase === 'complete') return
+    if (phase === 'prep' && !flowMode) return
 
     const interval = setInterval(() => {
       setTotalElapsed((t) => t + 1)
@@ -126,6 +152,13 @@ export function ActiveRoutine({ routine, onComplete, onExit, initialVoiceGuidanc
       stateRef.current
     const { rs, s } = getStretchInfo(idx)
     if (!rs || !s) return
+
+    if (curPhase === 'prep') {
+      // Flow mode prep countdown done → move to get-in-position
+      setPhase('getInPosition')
+      setTimeLeft(GET_IN_POSITION_SECONDS)
+      return
+    }
 
     if (curPhase === 'getInPosition') {
       // Get-in-position countdown done → start hold
@@ -331,11 +364,33 @@ export function ActiveRoutine({ routine, onComplete, onExit, initialVoiceGuidanc
             {stretch.sides === 'both' ? ' each side' : ''}
           </p>
 
-          {/* Instructions — read these before starting */}
+          {/* Flow mode: countdown + step-by-step reveal */}
+          {flowMode && (
+            <div className="text-4xl font-bold text-amber-500 tabular-nums mb-4">
+              {timeLeft}
+            </div>
+          )}
+
+          {/* Instructions */}
           <div className="text-left max-w-md space-y-3 mb-8 bg-white dark:bg-slate-800 rounded-xl border border-slate-200 dark:border-slate-700 p-4">
             {stretch.instructions.map((inst, i) => (
-              <div key={i} className="flex gap-3 text-sm text-slate-600 dark:text-slate-400">
-                <span className="text-emerald-500 font-bold shrink-0 w-5 text-right">{i + 1}</span>
+              <div
+                key={i}
+                className={`flex gap-3 text-sm transition-all duration-300 ${
+                  flowMode
+                    ? i <= flowStep
+                      ? i === flowStep
+                        ? 'text-slate-900 dark:text-white font-medium'
+                        : 'text-slate-500 dark:text-slate-400'
+                      : 'text-slate-300 dark:text-slate-600'
+                    : 'text-slate-600 dark:text-slate-400'
+                }`}
+              >
+                <span className={`font-bold shrink-0 w-5 text-right ${
+                  flowMode && i === flowStep ? 'text-emerald-500' : flowMode && i > flowStep ? 'text-slate-300 dark:text-slate-600' : 'text-emerald-500'
+                }`}>
+                  {i + 1}
+                </span>
                 <span>{inst}</span>
               </div>
             ))}
@@ -345,12 +400,21 @@ export function ActiveRoutine({ routine, onComplete, onExit, initialVoiceGuidanc
             {stretch.targetMuscles.join(' · ')}
           </p>
 
-          <button
-            onClick={handleReady}
-            className="bg-emerald-500 hover:bg-emerald-600 active:bg-emerald-700 text-white font-bold text-lg py-4 px-12 rounded-2xl shadow-lg shadow-emerald-500/25 transition-all"
-          >
-            I'm Ready
-          </button>
+          {flowMode ? (
+            <button
+              onClick={handleReady}
+              className="text-sm text-emerald-600 dark:text-emerald-400 font-medium"
+            >
+              Start now
+            </button>
+          ) : (
+            <button
+              onClick={handleReady}
+              className="bg-emerald-500 hover:bg-emerald-600 active:bg-emerald-700 text-white font-bold text-lg py-4 px-12 rounded-2xl shadow-lg shadow-emerald-500/25 transition-all"
+            >
+              I'm Ready
+            </button>
+          )}
         </div>
       )}
 

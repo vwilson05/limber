@@ -23,6 +23,7 @@ function App() {
   })
   const [activeRoutine, setActiveRoutine] = useState<Routine | null>(null)
   const [voiceGuidance, setVoiceGuidance] = useState(false)
+  const [flowMode, setFlowMode] = useState(false)
   const { progress, completeRoutine, totalCompleted, streak } = useProgress()
 
   const [previousView, setPreviousView] = useState<View>('home')
@@ -63,6 +64,7 @@ function App() {
             onComplete={handleComplete}
             onExit={handleExitRoutine}
             initialVoiceGuidance={voiceGuidance}
+            initialFlowMode={flowMode}
           />
         </div>
       </div>
@@ -255,6 +257,8 @@ function App() {
             }
             voiceGuidance={voiceGuidance}
             onVoiceGuidanceChange={setVoiceGuidance}
+            flowMode={flowMode}
+            onFlowModeChange={setFlowMode}
             onStart={beginRoutine}
             onBack={() => {
               setActiveRoutine(null)
