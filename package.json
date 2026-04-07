@@ -8,7 +8,7 @@
     "build": "tsc -b && vite build",
     "lint": "eslint .",
     "preview": "vite preview",
-    "start": "npx serve dist -s -l 3400"
+    "start": "bun x serve dist -s -l ${PORT:-3400}"
   },
   "dependencies": {
     "@tailwindcss/vite": "^4.2.2",
