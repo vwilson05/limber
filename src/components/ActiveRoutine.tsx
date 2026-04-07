@@ -1,6 +1,7 @@
 import { useState, useEffect, useRef, useCallback } from 'react'
 import type { Routine } from '../types'
 import { getStretchById } from '../data/stretches'
+import { useSound } from '../hooks/useSound'
 
 interface Props {
   routine: Routine
@@ -25,6 +26,9 @@ export function ActiveRoutine({ routine, onComplete, onExit }: Props) {
   const [currentRep, setCurrentRep] = useState(1)
   const [isPaused, setIsPaused] = useState(false)
   const [totalElapsed, setTotalElapsed] = useState(0)
+  const [soundEnabled, setSoundEnabled] = useState(true)
+
+  const { tick, ding, startChime, initAudio, setEnabled } = useSound()
 
   const stateRef = useRef({ currentIndex, currentSide, phase, currentRep })
   stateRef.current = { currentIndex, currentSide, phase, currentRep }
@@ -60,18 +64,25 @@ export function ActiveRoutine({ routine, onComplete, onExit }: Props) {
       setTotalElapsed((t) => t + 1)
       setTimeLeft((prevTime) => {
         if (prevTime <= 1) {
+          // Timer done — play ding
+          ding()
           setTimeout(() => handleTimerEnd(), 0)
           return 0
+        }
+        // Tick sound in last 5 seconds of hold phase
+        if ((phase === 'hold' || phase === 'getInPosition') && prevTime <= 6) {
+          tick()
         }
         return prevTime - 1
       })
     }, 1000)
 
     return () => clearInterval(interval)
-  }, [isPaused, phase])
+  }, [isPaused, phase, tick, ding])
 
   // User taps "I'm Ready" on the prep screen
   const handleReady = () => {
+    initAudio() // Unlock audio on first user gesture
     setPhase('getInPosition')
     setTimeLeft(GET_IN_POSITION_SECONDS)
   }
@@ -80,8 +91,15 @@ export function ActiveRoutine({ routine, onComplete, onExit }: Props) {
   const startHold = () => {
     const { rs } = getStretchInfo(stateRef.current.currentIndex)
     if (!rs) return
+    startChime()
     setPhase('hold')
     setTimeLeft(rs.holdSeconds)
+  }
+
+  const toggleSound = () => {
+    const next = !soundEnabled
+    setSoundEnabled(next)
+    setEnabled(next)
   }
 
   const handleTimerEnd = () => {
@@ -229,9 +247,27 @@ export function ActiveRoutine({ routine, onComplete, onExit }: Props) {
         >
           Exit
         </button>
-        <span className="text-sm text-slate-400">
-          {currentIndex + 1} / {totalStretches}
-        </span>
+        <div className="flex items-center gap-3">
+          <span className="text-sm text-slate-400">
+            {currentIndex + 1} / {totalStretches}
+          </span>
+          <button
+            onClick={toggleSound}
+            className="text-slate-400 hover:text-slate-600 dark:hover:text-slate-300"
+            title={soundEnabled ? 'Mute sounds' : 'Enable sounds'}
+          >
+            {soundEnabled ? (
+              <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
+                <path strokeLinecap="round" strokeLinejoin="round" d="M15.536 8.464a5 5 0 010 7.072M17.95 6.05a8 8 0 010 11.9M6.5 8.788V15.212a1 1 0 001.342.94l4.87-1.744A1 1 0 0013.4 13.5V10.5a1 1 0 00-.688-.908L7.842 7.848a1 1 0 00-1.342.94z" />
+              </svg>
+            ) : (
+              <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
+                <path strokeLinecap="round" strokeLinejoin="round" d="M5.586 15H4a1 1 0 01-1-1v-4a1 1 0 011-1h1.586l4.707-4.707C10.923 3.663 12 4.109 12 5v14c0 .891-1.077 1.337-1.707.707L5.586 15z" />
+                <path strokeLinecap="round" strokeLinejoin="round" d="M17 14l2-2m0 0l2-2m-2 2l-2-2m2 2l2 2" />
+              </svg>
+            )}
+          </button>
+        </div>
         <button
           onClick={handleSkip}
           className="text-emerald-600 dark:text-emerald-400 hover:text-emerald-700 text-sm font-medium"
