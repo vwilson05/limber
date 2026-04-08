@@ -99,12 +99,10 @@ export function ActiveRoutine({ routine, onComplete, onExit, initialVoiceGuidanc
       setTotalElapsed((t) => t + 1)
       setTimeLeft((prevTime) => {
         if (prevTime <= 1) {
-          // Timer done — play ding
-          ding()
           setTimeout(() => handleTimerEnd(), 0)
           return 0
         }
-        // Tick sound in last 5 seconds of hold phase
+        // Tick sound in last 5 seconds of hold and getInPosition phases
         if ((phase === 'hold' || phase === 'getInPosition') && prevTime <= 6) {
           tick()
         }
@@ -127,9 +125,13 @@ export function ActiveRoutine({ routine, onComplete, onExit, initialVoiceGuidanc
     const { rs, s } = getStretchInfo(stateRef.current.currentIndex)
     if (!rs || !s) return
     startChime()
-    // Play voice guidance for this stretch (first side only, or non-bilateral)
-    if (stateRef.current.currentSide === 'right' || s.sides !== 'both') {
+    // In flow mode, voice already started during prep — don't interrupt it.
+    // In manual mode, play voice now. For side switches, don't replay the main guide.
+    if (!flowMode && (stateRef.current.currentSide === 'right' || s.sides !== 'both')) {
       voice.playStretchGuide(s.id)
+    } else if (flowMode) {
+      // Let the prep audio keep playing — only play if it already finished
+      voice.playStretchGuideIfIdle(s.id)
     }
     setPhase('hold')
     setTimeLeft(rs.holdSeconds)
@@ -178,12 +180,15 @@ export function ActiveRoutine({ routine, onComplete, onExit, initialVoiceGuidanc
     }
 
     // curPhase === 'hold'
-    // If we have reps and more remain
+    // If we have reps and more remain — soft tick, no ding
     if (rs.reps && rep < rs.reps) {
       setCurrentRep(rep + 1)
       setTimeLeft(rs.holdSeconds)
       return
     }
+
+    // Stretch is fully done — ding now
+    ding()
 
     // If bilateral and on first side, switch — show get-in-position for other side
     if (s.sides === 'both' && side === 'right') {

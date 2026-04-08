@@ -10,7 +10,12 @@ function stopCurrent() {
   }
 }
 
-function playFile(path: string): HTMLAudioElement | null {
+function isPlaying(): boolean {
+  return currentAudio !== null && !currentAudio.paused && !currentAudio.ended
+}
+
+function playFile(path: string, interrupt = true): HTMLAudioElement | null {
+  if (!interrupt && isPlaying()) return currentAudio
   stopCurrent()
   try {
     const audio = new Audio(path)
@@ -18,6 +23,7 @@ function playFile(path: string): HTMLAudioElement | null {
     currentAudio = audio
     audio.play().catch(() => {
       // Audio play failed (e.g. no user gesture yet) — silently ignore
+      currentAudio = null
     })
     audio.addEventListener('ended', () => {
       if (currentAudio === audio) currentAudio = null
@@ -26,6 +32,20 @@ function playFile(path: string): HTMLAudioElement | null {
   } catch {
     return null
   }
+}
+
+// Queue: play after current audio finishes
+function playAfterCurrent(path: string) {
+  if (!isPlaying()) {
+    playFile(path)
+    return
+  }
+  const prev = currentAudio!
+  const onEnd = () => {
+    prev.removeEventListener('ended', onEnd)
+    playFile(path)
+  }
+  prev.addEventListener('ended', onEnd)
 }
 
 export function useVoiceGuidance() {
@@ -41,24 +61,32 @@ export function useVoiceGuidance() {
     playFile(`/audio/${stretchId}.mp3`)
   }, [])
 
+  // Play only if nothing else is currently playing — don't interrupt
+  const playStretchGuideIfIdle = useCallback((stretchId: string) => {
+    if (!enabledRef.current) return
+    playFile(`/audio/${stretchId}.mp3`, false)
+  }, [])
+
   const playSideSwitch = useCallback((stretchId: string) => {
     if (!enabledRef.current) return
-    playFile(`/audio/${stretchId}-switch.mp3`)
+    // Queue after current audio so instructions finish first
+    playAfterCurrent(`/audio/${stretchId}-switch.mp3`)
   }, [])
 
   const playRest = useCallback(() => {
     if (!enabledRef.current) return
-    playFile('/audio/rest.mp3')
+    playAfterCurrent('/audio/rest.mp3')
   }, [])
 
   const playComplete = useCallback(() => {
     if (!enabledRef.current) return
-    playFile('/audio/complete.mp3')
+    playAfterCurrent('/audio/complete.mp3')
   }, [])
 
   const playFiveSeconds = useCallback(() => {
     if (!enabledRef.current) return
-    playFile('/audio/five-seconds.mp3')
+    // Only announce 5 seconds if nothing else is playing
+    if (!isPlaying()) playFile('/audio/five-seconds.mp3')
   }, [])
 
   const stop = useCallback(() => {
@@ -69,6 +97,7 @@ export function useVoiceGuidance() {
     setEnabled,
     enabledRef,
     playStretchGuide,
+    playStretchGuideIfIdle,
     playSideSwitch,
     playRest,
     playComplete,
