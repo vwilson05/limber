@@ -104,7 +104,20 @@ const goalKeywords: Record<string, string[]> = {
   desk: ['posture', 'pain-relief'],
   sitting: ['posture', 'pain-relief'],
   computer: ['posture', 'pain-relief'],
-  sleep: ['pain-relief', 'mobility'],
+  sleep: ['recovery'],
+  'cant sleep': ['recovery'],
+  "can't sleep": ['recovery'],
+  insomnia: ['recovery'],
+  bedtime: ['recovery'],
+  'before bed': ['recovery'],
+  'wind down': ['recovery'],
+  night: ['recovery'],
+  nighttime: ['recovery'],
+  relax: ['recovery'],
+  relaxation: ['recovery'],
+  calm: ['recovery'],
+  calming: ['recovery'],
+  restless: ['recovery'],
 }
 
 const sportKeywords: Record<string, string[]> = {
@@ -185,6 +198,14 @@ const contextPhrases: Record<string, { goals: string[]; bodyRegions: string[] }>
   'whole body': { goals: ['flexibility', 'mobility'], bodyRegions: ['full-body'] },
   'full body': { goals: ['flexibility', 'mobility'], bodyRegions: ['full-body'] },
   'everything hurts': { goals: ['pain-relief', 'recovery'], bodyRegions: ['full-body'] },
+  'before bed': { goals: ['recovery'], bodyRegions: [] },
+  'go to sleep': { goals: ['recovery'], bodyRegions: [] },
+  'going to bed': { goals: ['recovery'], bodyRegions: [] },
+  'cant sleep': { goals: ['recovery'], bodyRegions: [] },
+  "can't sleep": { goals: ['recovery'], bodyRegions: [] },
+  'wind down': { goals: ['recovery'], bodyRegions: [] },
+  'winding down': { goals: ['recovery'], bodyRegions: [] },
+  'before sleep': { goals: ['recovery'], bodyRegions: [] },
 }
 
 export function searchRoutines(query: string): SearchResult[] {

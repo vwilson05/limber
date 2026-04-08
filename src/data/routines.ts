@@ -528,6 +528,57 @@ export const routines: Routine[] = [
       { sessions: 50, label: '2 Months', benefit: 'Lower body moves freely — sitting for hours no longer tightens you up' },
     ],
   },
+
+  // === SLEEP / WIND DOWN ===
+  {
+    id: 'bedtime-wind-down',
+    name: 'Bedtime Wind Down',
+    description: 'A calming floor routine to release the day\'s tension and prepare your body for sleep. All lying or seated — get into bed right after.',
+    goals: ['recovery', 'pain-relief'],
+    sports: ['general'],
+    bodyRegions: ['full-body'],
+    level: 'beginner',
+    durationMinutes: 15,
+    stretches: [
+      { stretchId: 'neck-tilt-lateral', holdSeconds: 30, restSeconds: 8 },
+      { stretchId: 'knee-to-chest', holdSeconds: 30, restSeconds: 8 },
+      { stretchId: 'supine-twist', holdSeconds: 40, restSeconds: 8 },
+      { stretchId: 'happy-baby', holdSeconds: 45, restSeconds: 8 },
+      { stretchId: 'reclined-butterfly', holdSeconds: 60, restSeconds: 8 },
+      { stretchId: 'lying-spinal-stretch', holdSeconds: 30, restSeconds: 8 },
+      { stretchId: 'legs-up-wall', holdSeconds: 60, restSeconds: 8 },
+      { stretchId: 'childs-pose', holdSeconds: 60 },
+    ],
+    tags: ['sleep', 'bedtime', 'night', 'wind-down', 'relaxation', 'gentle', 'daily'],
+    milestones: [
+      { sessions: 1, label: 'First Session', benefit: 'Immediate calm — your nervous system downshifts and tension melts away' },
+      { sessions: 7, label: '1 Week', benefit: 'Falling asleep faster, fewer restless nights' },
+      { sessions: 21, label: '3 Weeks', benefit: 'Your body associates this routine with sleep — it becomes a powerful wind-down signal' },
+      { sessions: 50, label: '2 Months', benefit: 'Deeper, more restorative sleep. Morning stiffness is gone. You wake up feeling reset.' },
+    ],
+  },
+  {
+    id: 'quick-sleep-reset',
+    name: 'Quick Sleep Reset',
+    description: 'Five minutes of calming stretches when you can\'t sleep or need to unwind fast.',
+    goals: ['recovery'],
+    sports: ['general'],
+    bodyRegions: ['lower-back', 'hips', 'neck'],
+    level: 'beginner',
+    durationMinutes: 5,
+    stretches: [
+      { stretchId: 'knee-to-chest', holdSeconds: 30, restSeconds: 8 },
+      { stretchId: 'supine-twist', holdSeconds: 30, restSeconds: 8 },
+      { stretchId: 'reclined-butterfly', holdSeconds: 60 },
+    ],
+    tags: ['sleep', 'quick', 'night', 'insomnia', 'relaxation'],
+    milestones: [
+      { sessions: 1, label: 'First Session', benefit: 'A quick nervous system reset — body relaxes enough to drift off' },
+      { sessions: 10, label: '10 Sessions', benefit: 'This becomes your go-to when sleep won\'t come — your body knows the cue' },
+      { sessions: 30, label: '1 Month', benefit: 'Rarely need it anymore — but when you do, it works in minutes' },
+      { sessions: 50, label: '2 Months', benefit: 'Sleep quality is fundamentally better — this routine rewired your wind-down response' },
+    ],
+  },
 ]
 
 export function filterRoutines(filters: {
