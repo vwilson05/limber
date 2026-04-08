@@ -34,7 +34,8 @@ function App() {
     setView('detail')
   }
 
-  const beginRoutine = () => {
+  const beginRoutine = (adapted: Routine) => {
+    setActiveRoutine(adapted)
     setView('active')
   }
 

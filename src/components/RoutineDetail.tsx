@@ -1,5 +1,7 @@
-import type { Routine } from '../types'
+import { useState, useMemo } from 'react'
+import type { Routine, Level, Duration } from '../types'
 import { getStretchById } from '../data/stretches'
+import { adaptRoutine } from '../data/routineAdapter'
 
 const goalColors: Record<string, string> = {
   flexibility: 'bg-purple-100 text-purple-700 dark:bg-purple-900/30 dark:text-purple-300',
@@ -18,6 +20,9 @@ const milestoneIcons = [
   <svg key="4" className="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={1.5}><path strokeLinecap="round" strokeLinejoin="round" d="M16.5 18.75h-9m9 0a3 3 0 013 3h-15a3 3 0 013-3m9 0v-3.375c0-.621-.503-1.125-1.125-1.125h-.871M7.5 18.75v-3.375c0-.621.504-1.125 1.125-1.125h.872m5.007 0H9.497m5.007 0a7.454 7.454 0 01-.982-3.172M9.497 14.25a7.454 7.454 0 00.981-3.172M5.25 4.236c-.982.143-1.954.317-2.916.52A6.003 6.003 0 007.73 9.728M5.25 4.236V4.5c0 2.108.966 3.99 2.48 5.228M5.25 4.236V2.721C7.456 2.41 9.71 2.25 12 2.25c2.291 0 4.545.16 6.75.47v1.516M18.75 4.236c.982.143 1.954.317 2.916.52A6.003 6.003 0 0016.27 9.728M18.75 4.236V4.5c0 2.108-.966 3.99-2.48 5.228m0 0a6.003 6.003 0 01-5.54 0" /></svg>,
 ]
 
+const durations: Duration[] = [5, 10, 15, 20]
+const levels: Level[] = ['beginner', 'intermediate', 'advanced']
+
 interface Props {
   routine: Routine
   completedCount: number
@@ -25,13 +30,23 @@ interface Props {
   onVoiceGuidanceChange: (val: boolean) => void
   flowMode: boolean
   onFlowModeChange: (val: boolean) => void
-  onStart: () => void
+  onStart: (adapted: Routine) => void
   onBack: () => void
 }
 
 export function RoutineDetail({ routine, completedCount, voiceGuidance, onVoiceGuidanceChange, flowMode, onFlowModeChange, onStart, onBack }: Props) {
+  const [selectedDuration, setSelectedDuration] = useState<Duration>(routine.durationMinutes)
+  const [selectedLevel, setSelectedLevel] = useState<Level>(routine.level)
+
+  const isCustomized = selectedDuration !== routine.durationMinutes || selectedLevel !== routine.level
+
+  const adaptedRoutine = useMemo(() => {
+    if (!isCustomized) return routine
+    return adaptRoutine(routine, selectedDuration, selectedLevel)
+  }, [routine, selectedDuration, selectedLevel, isCustomized])
+
   const allMuscles = new Set<string>()
-  routine.stretches.forEach((rs) => {
+  adaptedRoutine.stretches.forEach((rs) => {
     const s = getStretchById(rs.stretchId)
     s?.targetMuscles.forEach((m) => allMuscles.add(m))
   })
@@ -75,18 +90,58 @@ export function RoutineDetail({ routine, completedCount, voiceGuidance, onVoiceG
         </div>
       </div>
 
-      {/* Quick stats */}
+      {/* Duration selector */}
+      <div className="bg-white dark:bg-slate-800 rounded-xl border border-slate-200 dark:border-slate-700 p-4">
+        <p className="text-xs font-semibold text-slate-500 dark:text-slate-400 uppercase tracking-wide mb-2.5">Duration</p>
+        <div className="flex gap-2">
+          {durations.map((d) => (
+            <button
+              key={d}
+              onClick={() => setSelectedDuration(d)}
+              className={`flex-1 py-2 rounded-lg text-sm font-bold transition-all ${
+                selectedDuration === d
+                  ? 'bg-emerald-500 text-white shadow-sm'
+                  : 'bg-slate-100 dark:bg-slate-700 text-slate-500 dark:text-slate-400 hover:bg-slate-200 dark:hover:bg-slate-600'
+              }`}
+            >
+              {d}m
+            </button>
+          ))}
+        </div>
+      </div>
+
+      {/* Level selector */}
+      <div className="bg-white dark:bg-slate-800 rounded-xl border border-slate-200 dark:border-slate-700 p-4">
+        <p className="text-xs font-semibold text-slate-500 dark:text-slate-400 uppercase tracking-wide mb-2.5">Level</p>
+        <div className="flex gap-2">
+          {levels.map((l) => (
+            <button
+              key={l}
+              onClick={() => setSelectedLevel(l)}
+              className={`flex-1 py-2 rounded-lg text-sm font-medium capitalize transition-all ${
+                selectedLevel === l
+                  ? 'bg-emerald-500 text-white shadow-sm'
+                  : 'bg-slate-100 dark:bg-slate-700 text-slate-500 dark:text-slate-400 hover:bg-slate-200 dark:hover:bg-slate-600'
+              }`}
+            >
+              {l}
+            </button>
+          ))}
+        </div>
+      </div>
+
+      {/* Adapted stats */}
       <div className="grid grid-cols-3 gap-3">
         <div className="bg-white dark:bg-slate-800 rounded-xl border border-slate-200 dark:border-slate-700 p-3 text-center">
-          <p className="text-xl font-bold text-emerald-500">{routine.durationMinutes}m</p>
+          <p className="text-xl font-bold text-emerald-500">{adaptedRoutine.durationMinutes}m</p>
           <p className="text-[10px] text-slate-400 uppercase mt-0.5">Duration</p>
         </div>
         <div className="bg-white dark:bg-slate-800 rounded-xl border border-slate-200 dark:border-slate-700 p-3 text-center">
-          <p className="text-xl font-bold text-emerald-500">{routine.stretches.length}</p>
+          <p className="text-xl font-bold text-emerald-500">{adaptedRoutine.stretches.length}</p>
           <p className="text-[10px] text-slate-400 uppercase mt-0.5">Stretches</p>
         </div>
         <div className="bg-white dark:bg-slate-800 rounded-xl border border-slate-200 dark:border-slate-700 p-3 text-center">
-          <p className="text-xl font-bold text-emerald-500 capitalize">{routine.level}</p>
+          <p className="text-xl font-bold text-emerald-500 capitalize">{adaptedRoutine.level}</p>
           <p className="text-[10px] text-slate-400 uppercase mt-0.5">Level</p>
         </div>
       </div>
@@ -146,7 +201,7 @@ export function RoutineDetail({ routine, completedCount, voiceGuidance, onVoiceG
           Stretches in This Routine
         </h2>
         <div className="space-y-3">
-          {routine.stretches.map((rs, i) => {
+          {adaptedRoutine.stretches.map((rs, i) => {
             const s = getStretchById(rs.stretchId)
             if (!s) return null
             return (
@@ -238,7 +293,7 @@ export function RoutineDetail({ routine, completedCount, voiceGuidance, onVoiceG
           </div>
 
           <button
-            onClick={onStart}
+            onClick={() => onStart(adaptedRoutine)}
             className="w-full bg-emerald-500 hover:bg-emerald-600 active:bg-emerald-700 text-white font-bold text-lg py-4 rounded-2xl shadow-lg shadow-emerald-500/25 transition-all hover:shadow-xl hover:shadow-emerald-500/30"
           >
             Start Routine
