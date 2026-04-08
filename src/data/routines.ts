@@ -579,6 +579,58 @@ export const routines: Routine[] = [
       { sessions: 50, label: '2 Months', benefit: 'Sleep quality is fundamentally better — this routine rewired your wind-down response' },
     ],
   },
+  // === MORNING ENERGY ===
+  {
+    id: 'morning-energy',
+    name: 'Morning Energy Boost',
+    description: 'Wake up, get blood flowing, feel alive. Standing and dynamic stretches to fire up your body and mind first thing.',
+    goals: ['warmup', 'mobility'],
+    sports: ['general'],
+    bodyRegions: ['full-body'],
+    level: 'intermediate',
+    durationMinutes: 15,
+    stretches: [
+      { stretchId: 'cat-cow', holdSeconds: 5, reps: 8, restSeconds: 5 },
+      { stretchId: 'spinal-twist-standing', holdSeconds: 3, reps: 10, restSeconds: 5 },
+      { stretchId: 'standing-side-bend', holdSeconds: 20, restSeconds: 5 },
+      { stretchId: 'forward-fold-ragdoll', holdSeconds: 30, restSeconds: 5 },
+      { stretchId: 'high-lunge-twist', holdSeconds: 20, restSeconds: 5 },
+      { stretchId: 'world-greatest-stretch', holdSeconds: 25, restSeconds: 5 },
+      { stretchId: 'sun-salutation-flow', holdSeconds: 5, reps: 5, restSeconds: 5 },
+      { stretchId: 'downward-dog', holdSeconds: 30, restSeconds: 5 },
+      { stretchId: 'standing-chest-opener', holdSeconds: 20 },
+    ],
+    tags: ['morning', 'energy', 'wake-up', 'dynamic', 'daily', 'flow'],
+    milestones: [
+      { sessions: 1, label: 'First Session', benefit: 'Instant alertness — better than coffee. Blood pumping, brain on.' },
+      { sessions: 7, label: '1 Week', benefit: 'Morning grogginess disappears faster each day. You crave this routine.' },
+      { sessions: 21, label: '3 Weeks', benefit: 'Sustained energy through the morning. No more mid-AM crash.' },
+      { sessions: 50, label: '2 Months', benefit: 'You wake up already feeling good. This routine turned you into a morning person.' },
+    ],
+  },
+  {
+    id: 'quick-morning-jumpstart',
+    name: 'Quick Morning Jumpstart',
+    description: 'Five minutes to go from groggy to go. Fast, standing, no equipment.',
+    goals: ['warmup', 'mobility'],
+    sports: ['general'],
+    bodyRegions: ['full-body'],
+    level: 'beginner',
+    durationMinutes: 5,
+    stretches: [
+      { stretchId: 'spinal-twist-standing', holdSeconds: 3, reps: 10, restSeconds: 3 },
+      { stretchId: 'standing-side-bend', holdSeconds: 15, restSeconds: 3 },
+      { stretchId: 'forward-fold-ragdoll', holdSeconds: 20, restSeconds: 3 },
+      { stretchId: 'standing-chest-opener', holdSeconds: 20 },
+    ],
+    tags: ['morning', 'energy', 'quick', 'wake-up', '5-min'],
+    milestones: [
+      { sessions: 1, label: 'First Session', benefit: 'Shakes off the fog in minutes — you feel awake and ready' },
+      { sessions: 10, label: '10 Sessions', benefit: 'Your body wakes up faster than your alarm — this becomes automatic' },
+      { sessions: 30, label: '1 Month', benefit: 'Morning energy is consistent — you don\'t need to convince yourself to get up' },
+      { sessions: 50, label: '2 Months', benefit: 'Built-in morning momentum. Five minutes that changed your entire day.' },
+    ],
+  },
 ]
 
 export function filterRoutines(filters: {
